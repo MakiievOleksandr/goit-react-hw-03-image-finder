@@ -46,7 +46,9 @@ class ImageFinder extends Component {
 
   async fetchPosts() {
     try {
-      this.setState({ loading: true });
+      this.setState({
+        loading: true,
+      });
       const { searchQuery, page } = this.state;
       const { data, perPage } = await searchImage(searchQuery, page);
       this.setState(({ gallery }) => ({
