@@ -23,7 +23,8 @@ class Searchbar extends Component {
     if (searchQuery.trim() === '') {
       alert('Enter something');
       return;
-    } else onSubmit(searchQuery);
+    }
+    onSubmit(searchQuery);
 
     this.setState({ searchQuery: '' });
   };

@@ -18,7 +18,8 @@ export const searchImage = async (q, page = 1) => {
       page,
     },
   });
-  return data;
+
+  return { data, perPage: instance.defaults.params.per_page };
 };
 
 export const getAllPosts = async () => {

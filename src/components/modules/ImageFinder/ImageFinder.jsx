@@ -19,15 +19,27 @@ class ImageFinder extends Component {
     showMoodal: false,
     details: null,
     error: null,
+    perPage: 0,
   };
 
-  handleSubmitBtn = searchQuery => {
-    this.setState({ searchQuery, gallery: [], page: 1 });
+  handleSubmitBtn = query => {
+    this.setState({ searchQuery: query, page: 1 });
   };
 
   componentDidUpdate(prevProps, prevState) {
     const { searchQuery, page } = this.state;
-    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
+
+    if (
+      prevState.searchQuery === '' ||
+      searchQuery !== prevState.searchQuery ||
+      prevState.page !== page
+    ) {
+      if (searchQuery !== prevState.searchQuery) {
+        this.setState({
+          gallery: [],
+        });
+      }
+
       this.fetchPosts();
     }
   }
@@ -36,9 +48,10 @@ class ImageFinder extends Component {
     try {
       this.setState({ loading: true });
       const { searchQuery, page } = this.state;
-      const data = await searchImage(searchQuery, page);
+      const { data, perPage } = await searchImage(searchQuery, page);
       this.setState(({ gallery }) => ({
         gallery: [...gallery, ...data.hits],
+        perPage,
       }));
     } catch (error) {
       this.setState({ error: error.message });
@@ -48,7 +61,9 @@ class ImageFinder extends Component {
   }
 
   handleLoadMore = () => {
-    this.setState(({ page }) => ({ page: page + 1 }));
+    this.setState(({ page }) => ({
+      page: page + 1,
+    }));
   };
 
   showImage = img => {
@@ -67,8 +82,15 @@ class ImageFinder extends Component {
 
   render() {
     const { handleSubmitBtn, handleLoadMore, closeModal, showImage } = this;
-    const { searchQuery, gallery, loading, error, showMoodal, details } =
-      this.state;
+    const {
+      searchQuery,
+      gallery,
+      loading,
+      error,
+      showMoodal,
+      details,
+      perPage,
+    } = this.state;
 
     return (
       <div>
@@ -76,6 +98,11 @@ class ImageFinder extends Component {
           <Searchbar searchQuery={searchQuery} onSubmit={handleSubmitBtn} />
         </div>
         <div className="gallery">
+          <ImageGallery
+            items={gallery}
+            showImage={showImage}
+            query={searchQuery}
+          />
           {loading && (
             <Bars
               height="80"
@@ -88,10 +115,11 @@ class ImageFinder extends Component {
             />
           )}
           {error && loading ? loading : <p>{error}</p>}
-
-          <ImageGallery items={gallery} showImage={showImage} />
         </div>
-        {Boolean(gallery.length) && <Button onLoadMore={handleLoadMore} />}
+        {!loading && gallery.length % perPage === 0 && gallery.length > 0 && (
+          <Button onLoadMore={handleLoadMore} />
+        )}
+
         {showMoodal && (
           <Modal close={closeModal}>
             <ImageDetails details={details} />
@@ -103,3 +131,7 @@ class ImageFinder extends Component {
 }
 
 export default ImageFinder;
+
+ImageFinder.defaultProps = {
+  gallery: [],
+};
